@@ -1,0 +1,1209 @@
+حاضر يا إيهاب — سأقوم **بترجمة النص بالكامل إلى العربية** ثم بعد ذلك **أعطيك شرحًا مبسطًا وواضحًا** لكل جزء، بحيث تفهم *ما هو الـ Form؟* و *كيف يعمل في Django؟* و *ما الفرق بين GET و POST؟* وكيف تُنشئ Form بنفسك.
+
+---
+
+# ✅ **أولاً: الترجمة العربية الكاملة للنص**
+
+## 🟦 مقدمة عن التعامل مع النماذج (Forms) في Django
+
+هذا المستند يقدّم مقدمة لأساسيات نماذج الويب وكيف يتعامل Django معها. إذا أردت تفاصيل دقيقة أكثر عن أجزاء معينة، يمكنك زيارة:
+*واجهة النماذج (Forms API)*، وحقول النماذج، والتحقق من البيانات في النماذج.
+
+إلّا إذا كنت تنوي بناء مواقع لا تستقبل أي بيانات من المستخدمين، فستحتاج للتعامل مع النماذج.
+
+يوفّر Django أدوات تساعدك على إنشاء نماذج للحصول على مدخلات من المستخدم، ومعالجة هذه المدخلات والرد عليها.
+
+---
+
+## 🟦 النماذج في HTML
+
+الـ Form في HTML هو مجموعة عناصر داخل `<form>...</form>` تسمح للزائر بإدخال نصوص، اختيار خيارات، التحكم بعناصر، ثم إرسال هذه البيانات إلى الخادم.
+
+بعض عناصر الإدخال بسيطة، مثل:
+
+* input text
+* checkbox
+* radio
+
+عناصر أخرى تحتاج JavaScript و CSS مثل:
+
+* date picker
+* slider
+
+يجب أن يحدد النموذج شيئين مهمين:
+
+1. **إلى أين؟**
+   العنوان الذي سترسل البيانات إليه (action="URL").
+
+2. **كيف؟**
+   الوسيلة أو الطريقة التي سترسل بها البيانات (method="GET" أو "POST").
+
+مثال: نموذج الدخول في لوحة تحكم Django يحتوي حقول username و password وزر submit، ويرسل البيانات إلى `/admin/` باستخدام POST.
+
+---
+
+## 🟦 الفرق بين GET و POST
+
+هما الطريقتان الوحيدتان المناسبتان لإرسال بيانات النماذج.
+
+### ✔ POST
+
+* يرسل البيانات داخل جسم الطلب (Body)، ولا تظهر في الرابط.
+* مناسب للعمليات التي تغيّر حالة النظام (مثل إضافة بيانات).
+* أفضل للحفاظ على الخصوصية (مثل كلمة المرور).
+
+### ✔ GET
+
+* يضيف البيانات في الرابط على شكل Query String.
+* مناسب للأشياء التي لا تغيّر شيئًا مثل:
+
+  * عمليات البحث
+  * فلترة البيانات
+* يمكن حفظ الرابط ومشاركته بسهولة.
+
+### ✘ لا يجب استخدام GET في:
+
+* النماذج الحساسة (كلمات المرور)
+* البيانات الكبيرة
+* رفع الملفات
+* النماذج التي تغيّر بيانات في قاعدة البيانات
+
+---
+
+## 🟦 دور Django في التعامل مع النماذج
+
+التعامل مع النماذج عملية معقّدة، حيث يجب:
+
+* تجهيز البيانات للعرض
+* إنشاء HTML المناسب
+* استقبال البيانات
+* التحقق من صحتها
+* تنظيفها
+* تخزينها أو معالجتها
+
+Django يسهّل كل هذا جدًا، ويوفّر أمانًا عاليًا.
+
+Django يتعامل مع 3 أمور رئيسية:
+
+1. **إعداد البيانات لتصبح جاهزة للعرض**
+2. **إنشاء النموذج HTML**
+3. **استقبال ومعالجة البيانات المرسلة**
+
+---
+
+## 🟦 نماذج Django
+
+النموذج في Django قد يشير إلى:
+
+* النموذج HTML الحقيقي
+* كائن Django Form الذي ينشئ HTML
+* البيانات المرسلة نفسها
+* العملية الكاملة (الإنشاء + الإرسال + التحقق + المعالجة)
+
+---
+
+## 🟦 كلاس Form في Django
+
+هو القلب الأساسي للنماذج.
+
+يشبه الـ Model لكنه مخصص للنماذج:
+
+* تعريف الحقول
+* إضافة الخصائص
+* التحقق من البيانات
+
+كل حقل داخل الـ Form يتحول إلى عنصر HTML مثل `<input>`.
+وكل حقل لديه كائن Widget مسؤول عن شكل عنصر HTML.
+
+---
+
+## 🟦 إنشاء Form في Django
+
+### مثال:
+
+### **forms.py**
+
+```python
+from django import forms
+
+class NameForm(forms.Form):
+    your_name = forms.CharField(label="Your name", max_length=100)
+```
+
+هذا النموذج يحتوي على حقل واحد `your_name`.
+
+`max_length` يقوم بـ:
+
+1. إضافة `maxlength="100"` في HTML
+2. التحقق من طول النص عند إرسال النموذج
+
+---
+
+## 🟦 معالجة النموذج في view
+
+### **views.py**
+
+```python
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from .forms import NameForm
+
+def get_name(request):
+    if request.method == "POST":
+        form = NameForm(request.POST)
+        if form.is_valid():
+            return HttpResponseRedirect("/thanks/")
+    else:
+        form = NameForm()
+
+    return render(request, "name.html", {"form": form})
+```
+
+### ملخص عمل الـ view:
+
+* إذا كان الطلب GET → اعرض النموذج فارغًا.
+* إذا كان POST → اجلب البيانات داخل النموذج (Bound Form).
+* افحص البيانات `is_valid()`.
+* إذا صحيحة → عالجها ثم اعد توجيه المستخدم.
+* إذا غير صحيحة → أعد إظهار النموذج مع الأخطاء.
+
+---
+
+## 🟦 عرض النموذج في القالب (Template)
+
+### **name.html**
+
+```html
+<form action="/your-name/" method="post">
+    {% csrf_token %}
+    {{ form }}
+    <input type="submit" value="Submit">
+</form>
+```
+
+Django سيحوّل {{ form }} إلى HTML كامل:
+
+* label
+* input
+* رسائل الخطأ
+* required
+* maxlength
+
+---
+
+## 🟦 CSRF وحماية النموذج
+
+يجب دائمًا إضافة:
+
+```
+{% csrf_token %}
+```
+
+وإلا سيمنع Django إرسال البيانات للأمان.
+
+---
+
+## 🟦 المزيد عن كلاس Form
+
+### ✔ Unbound Form
+
+نموذج بدون بيانات (أول مرة يتم عرضه).
+
+### ✔ Bound Form
+
+نموذج يحتوي بيانات تم إرسالها بـ POST.
+
+---
+
+## 🟦 مثال لنموذج أكبر
+
+### **forms.py**
+
+```python
+class ContactForm(forms.Form):
+    subject = forms.CharField(max_length=100)
+    message = forms.CharField(widget=forms.Textarea)
+    sender = forms.EmailField()
+    cc_myself = forms.BooleanField(required=False)
+```
+
+هنا لدينا:
+
+* نص قصير
+* نص طويل Textarea
+* بريد
+* Checkbox
+
+---
+
+## 🟦 البيانات النظيفة cleaned_data
+
+بعد استدعاء `form.is_valid()`:
+
+```python
+subject = form.cleaned_data["subject"]
+message = form.cleaned_data["message"]
+sender = form.cleaned_data["sender"]
+cc_myself = form.cleaned_data["cc_myself"]
+```
+
+Django يحوّل:
+
+* `EmailField` → بريد صحيح
+* `BooleanField` → True/False
+* `IntegerField` → int
+* `FloatField` → float
+
+---
+
+## 🟦 رفع الملفات
+
+الملفات تأتي من:
+
+```
+request.FILES
+```
+
+وليس `request.POST`.
+
+---
+
+## 🟦 تخصيص عرض النموذج
+
+يمكنك التحكم في:
+
+* طريقة عرض الحقول
+* القالب المستخدم لعرض النموذج
+* وظيفة render الخاصة به
+
+---
+
+# ✅ **ثانيًا: شرح مبسّط وواضح جدًا**
+
+## 🔵 ما هو الـ Form في Django؟
+
+هو كائن يساعدك على:
+
+* إنشاء نموذج HTML تلقائيًا
+* التحقق من البيانات بسهولة
+* حماية النموذج من الاختراق
+* معالجة المدخلات بدون كتابة HTML
+
+---
+
+## 🔵 ما الفرق بين GET و POST؟
+
+| GET                     | POST                 |
+| ----------------------- | -------------------- |
+| البيانات تظهر في الرابط | لا تظهر              |
+| آمن قليل                | آمن                  |
+| بدون تأثير على النظام   | تغيّر حالة النظام    |
+| مناسب للبحث             | مناسب للتسجيل والحفظ |
+| يمكن حفظ الرابط         | لا يمكن              |
+
+---
+
+## 🔵 كيف يعمل النموذج؟
+
+### 1. تعرض النموذج أول مرة
+
+→ `GET` → نموذج فارغ
+
+### 2. المستخدم يكتب بيانات ويضغط Submit
+
+→ `POST`
+
+### 3. Django يربط البيانات بالنموذج
+
+→ Bound Form
+
+### 4. Django يتحقق
+
+→ form.is_valid()
+
+### 5. إذا صحيح
+
+→ حفظ/إرسال بريد/أي معالجة
+
+### 6. إعادة توجيه
+
+→ HttpResponseRedirect
+
+---
+
+## 🔵 ما هو cleaned_data؟
+
+هو قاموس يحتوي البيانات بعد التحقق منها وتنظيفها.
+
+
+
+
+
+
+
+
+تمام يا إيهاب، ركّز معي…
+سأعطيك **شرحًا كاملًا وبسيطًا** عن الـ **Widget** في Django: ما هو، لماذا نستخدمه، وأمثلة قوية توضّح لك كل شيء.
+
+---
+
+# 🎨 ما هو الـ Widget في Django؟
+
+الـ **Widget** هو الجزء المسؤول عن **شكل الحقل في الـ HTML**.
+يعني هو الذي يحدد:
+
+* كيف يظهر الحقل في الفورم (input – textarea – select …)
+* ما هي الخصائص (attributes) المضافة للحقل (`class`, `placeholder`, …)
+* كيف يتعامل المستخدم مع الحقل
+
+**باختصار**:
+
+### 🟦 الـ Widget = الشكل الأمامي لحقل الفورم في HTML
+
+وليس نوع البيانات.
+
+---
+
+# 🎯 مثال بسيط يوضّح الفكرة
+
+مثلاً عندك حقل:
+
+```python
+forms.CharField()
+```
+
+هذا يظهر للمستخدم كـ:
+
+```html
+<input type="text">
+```
+
+لكن لو استخدمت Widget:
+
+```python
+forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'اكتب اسمك هنا'}))
+```
+
+سيظهر هكذا:
+
+```html
+<input type="text" placeholder="اكتب اسمك هنا">
+```
+
+---
+
+# 🧩 لماذا نستخدم الـ Widgets؟
+
+نستخدمها عندما نريد:
+
+* تغيير شكل الحقل
+* إضافة CSS classes
+* إضافة placeholder
+* تحويل الحقل من TextInput إلى Textarea
+* تحويله إلى PasswordInput
+* تحويله إلى Date picker
+* إضافة `rows`, `cols`
+* تغيير طريقة عرض الـ checkbox أو select
+
+---
+
+# ⭐ أهم أنواع الـ Widgets الأكثر استخدامًا
+
+### ✔️ 1. **TextInput**
+
+حقل نصي عادي:
+
+```python
+forms.TextInput()
+```
+
+### ✔️ 2. **PasswordInput**
+
+حقل كلمة مرور:
+
+```python
+forms.PasswordInput()
+```
+
+### ✔️ 3. **Textarea**
+
+مربع كتابة كبير:
+
+```python
+forms.Textarea(attrs={'rows':3})
+```
+
+### ✔️ 4. **EmailInput**
+
+حقل بريد إلكتروني:
+
+```python
+forms.EmailInput()
+```
+
+### ✔️ 5. **NumberInput**
+
+حقل أرقام:
+
+```python
+forms.NumberInput()
+```
+
+### ✔️ 6. **DateInput**
+
+حقل تاريخ:
+
+```python
+forms.DateInput(attrs={'type':'date'})
+```
+
+### ✔️ 7. **Select**
+
+قائمة منسدلة:
+
+```python
+forms.Select()
+```
+
+### ✔️ 8. **CheckboxInput**
+
+```python
+forms.CheckboxInput()
+```
+
+---
+
+# 🧨 كيف نستخدم الـ Widgets داخل Form عادي؟
+
+مثال:
+
+```python
+class StudentForm(forms.Form):
+    name = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'اكتب الاسم'
+        })
+    )
+
+    bio = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 5})
+    )
+```
+
+---
+
+# 🧨 كيف نستخدم Widgets داخل ModelForm؟
+
+تضعهم داخل **Meta → widgets**:
+
+```python
+class TaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ['title', 'description', 'due_date']
+
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'عنوان المهمة'
+            }),
+
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4
+            }),
+
+            'due_date': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'form-control'
+            })
+        }
+```
+
+---
+
+# 🔥 ماذا يفعل الـ Widget في الـ backend؟
+
+لا يغير **نوع البيانات**
+يعني:
+
+* TextInput ما يغيّر CharField
+* Select ما يغيّر ForeignKey
+* PasswordInput لا يغيّر تخزين البيانات
+
+هو فقط **طريقة عرض الـ HTML**.
+
+---
+
+# 📌 هل الـ Widget يستخدم في التعديل و الحذف أيضًا؟
+
+### ✔️ نعم، إذا كنت تستخدم **ModelForm**
+
+فالـ widgets تعمل في:
+
+* صفحة الإضافة
+* صفحة التعديل
+
+لكن
+
+### ❌ الحذف لا يحتاج Widgets
+
+لأنه لا يحتوي حقول إدخال أصلًا.
+
+
+
+
+
+
+
+
+
+
+
+تمام يا إيهاب…
+سأعطيك **مثال كامل 100%** عن الـ **Task**:
+
+* Model
+* ModelForm مع Widgets
+* Views (إضافة + تعديل)
+* Template جاهز
+* كل خطوة بسيطة وواضحة
+
+خلّينا نبدأ 👇
+
+---
+
+# ✅ 1) الـ **Model**: (task/models.py)
+
+```python
+from django.db import models
+
+class Task(models.Model):
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    due_date = models.DateField()
+
+    def __str__(self):
+        return self.title
+```
+
+---
+
+# ✅ 2) الـ **ModelForm** مع Widgets
+
+(الملف: task/forms.py)
+
+```python
+from django import forms
+from .models import Task
+
+class TaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ['title', 'description', 'due_date']
+
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'اكتب عنوان المهمة'
+            }),
+
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'اكتب وصفًا مختصرًا'
+            }),
+
+            'due_date': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'form-control'
+            }),
+        }
+```
+
+✔️ هنا استخدمنا Widgets للتحكم بالـ CSS + الشكل + النوع
+✔️ `type="date"` يجعل المتصفح يعرض date picker
+✔️ `rows` يحدد حجم صندوق الكتابة
+
+---
+
+# ✅ 3) الـ **Views** (إضافة + تعديل)
+
+## 📌 إضافة مهمة جديدة
+
+(task/views.py)
+
+```python
+from django.shortcuts import render, redirect, get_object_or_404
+from .forms import TaskForm
+from .models import Task
+
+def create_task(request):
+    if request.method == "POST":
+        form = TaskForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("task_list")
+    else:
+        form = TaskForm()
+
+    return render(request, "task/create_task.html", {"form": form})
+```
+
+---
+
+## 📌 تعديل مهمة موجودة
+
+```python
+def update_task(request, pk):
+    task = get_object_or_404(Task, pk=pk)
+
+    if request.method == "POST":
+        form = TaskForm(request.POST, instance=task)
+        if form.is_valid():
+            form.save()
+            return redirect("task_list")
+    else:
+        form = TaskForm(instance=task)
+
+    return render(request, "task/update_task.html", {"form": form})
+```
+
+✔️ لاحظ استخدام `instance=` يجعل نفس الـ widgets تظهر أثناء التعديل أيضًا
+✔️ بمعنى:
+**نفس شكل الحقول + نفس التنسيق يظهر في الإضافة والتعديل**
+
+---
+
+# ✅ 4) Templates جاهزة
+
+## 📌 صفحة الإضافة (templates/task/create_task.html)
+
+```html
+<h2>إضافة مهمة جديدة</h2>
+
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit">حفظ</button>
+</form>
+```
+
+---
+
+## 📌 صفحة التعديل (templates/task/update_task.html)
+
+```html
+<h2>تعديل المهمة</h2>
+
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit">تحديث</button>
+</form>
+```
+
+---
+
+# 📌 مهم جدًا: صفحة عرض المهام (list)
+
+```python
+def task_list(request):
+    tasks = Task.objects.all()
+    return render(request, "task/task_list.html", {"tasks": tasks})
+```
+
+```html
+<h2>جميع المهام</h2>
+
+<ul>
+{% for task in tasks %}
+    <li>
+        {{ task.title }} - {{ task.due_date }}
+        <a href="{% url 'update_task' task.id %}">تعديل</a>
+    </li>
+{% endfor %}
+</ul>
+
+<a href="{% url 'create_task' %}">إضافة مهمة جديدة</a>
+```
+
+---
+
+# 🎯 الخلاصة
+
+### الـ Widgets:
+
+* تتحكم بالشكل فقط
+* تظهر في الإضافة والتعديل تلقائيًا
+* تسهّل عليك عمل Form جميل بدون كود HTML كبير
+
+---
+
+
+
+
+
+
+
+
+
+  Examples For Using ModelForm In Real Project :
+
+
+تمام يا إيهاب…
+سأعطيك **نسخة كاملة + منسّقة + جاهزة للاستخدام**
+بـ **Bootstrap 5**
+وتنسيقات جميلة
+مع **Forms منظمة + Error Messages + Buttons احترافية**
+وبدون تعقيد.
+
+ستحصل الآن على:
+
+✔ Model
+✔ ModelForm مع Widgets
+✔ Views (إضافة + تعديل + حذف + قائمة)
+✔ Templates منسّقة Bootstrap
+✔ Navbar جاهز
+✔ صفحة كاملة الشكل رائعة
+
+لنبدأ…
+
+---
+
+# 🔵 1) Model — (task/models.py)
+
+```python
+from django.db import models
+
+class Task(models.Model):
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    due_date = models.DateField()
+
+    def __str__(self):
+        return self.title
+```
+
+---
+
+# 🔵 2) ModelForm مع Widgets — (task/forms.py)
+
+```python
+from django import forms
+from .models import Task
+
+class TaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ['title', 'description', 'due_date']
+
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'اكتب عنوان المهمة'
+            }),
+
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'اكتب وصف المهمة'
+            }),
+
+            'due_date': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'form-control'
+            }),
+        }
+```
+
+---
+
+# 🔵 3) Views كاملة — (task/views.py)
+
+## 📌 قائمة المهام
+
+```python
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Task
+from .forms import TaskForm
+
+def task_list(request):
+    tasks = Task.objects.all().order_by('due_date')
+    return render(request, "task/task_list.html", {"tasks": tasks})
+```
+
+---
+
+## 📌 إضافة مهمة
+
+```python
+def create_task(request):
+    if request.method == "POST":
+        form = TaskForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("task_list")
+
+    else:
+        form = TaskForm()
+
+    return render(request, "task/create_task.html", {"form": form})
+```
+
+---
+
+## 📌 تعديل مهمة
+
+```python
+def update_task(request, pk):
+    task = get_object_or_404(Task, pk=pk)
+
+    if request.method == "POST":
+        form = TaskForm(request.POST, instance=task)
+        if form.is_valid():
+            form.save()
+            return redirect("task_list")
+
+    else:
+        form = TaskForm(instance=task)
+
+    return render(request, "task/update_task.html", {"form": form})
+```
+
+---
+
+## 📌 حذف مهمة
+
+```python
+def delete_task(request, pk):
+    task = get_object_or_404(Task, pk=pk)
+
+    if request.method == "POST":
+        task.delete()
+        return redirect("task_list")
+
+    return render(request, "task/delete_task.html", {"task": task})
+```
+
+---
+
+# 🔵 4) urls.py
+
+في ملف المشروع الرئيسي:
+(project/urls.py)
+
+```python
+from django.contrib import admin
+from django.urls import path
+from task import views
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+
+    path('', views.task_list, name="task_list"),
+    path('create/', views.create_task, name="create_task"),
+    path('update/<int:pk>/', views.update_task, name="update_task"),
+    path('delete/<int:pk>/', views.delete_task, name="delete_task"),
+]
+```
+
+---
+
+# 🔵 5) إضافة Bootstrap في base.html
+
+(templates/base.html)
+
+⚠️ يجب أن تضع كل الصفحات داخل `{% extends 'base.html' %}`
+
+```html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Task Manager</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f5f5f5;
+        }
+        .container {
+            margin-top: 40px;
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">📌 إدارة المهام</a>
+    </div>
+</nav>
+
+<div class="container">
+    {% block content %}
+    {% endblock %}
+</div>
+
+</body>
+</html>
+```
+
+---
+
+# 🔵 6) صفحة قائمة المهام — task_list.html
+
+```html
+{% extends 'base.html' %}
+{% block content %}
+
+<h3 class="mb-4">جميع المهام</h3>
+
+<a href="{% url 'create_task' %}" class="btn btn-primary mb-3">+ إضافة مهمة</a>
+
+<div class="card p-3">
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>العنوان</th>
+                <th>الوصف</th>
+                <th>التاريخ</th>
+                <th>الإجراءات</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ task.title }}</td>
+                <td>{{ task.description|truncatechars:50 }}</td>
+                <td>{{ task.due_date }}</td>
+                <td>
+                    <a href="{% url 'update_task' task.id %}" class="btn btn-sm btn-warning">تعديل</a>
+                    <a href="{% url 'delete_task' task.id %}" class="btn btn-sm btn-danger">حذف</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+{% endblock %}
+```
+
+---
+
+# 🔵 7) صفحة الإضافة والتعديل
+
+(نفس التصميم)
+
+## create_task.html
+
+```html
+{% extends 'base.html' %}
+{% block content %}
+
+<h3>إضافة مهمة جديدة</h3>
+<hr>
+
+<form method="POST" class="card p-4 bg-white">
+    {% csrf_token %}
+
+    {{ form.non_field_errors }}
+
+    <div class="mb-3">
+        {{ form.title.label }}
+        {{ form.title }}
+        {{ form.title.errors }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.description.label }}
+        {{ form.description }}
+        {{ form.description.errors }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.due_date.label }}
+        {{ form.due_date }}
+        {{ form.due_date.errors }}
+    </div>
+
+    <button class="btn btn-success">حفظ</button>
+</form>
+
+{% endblock %}
+```
+
+---
+
+## update_task.html
+
+نفس الكود مع تغيير العنوان فقط:
+
+```html
+{% extends 'base.html' %}
+{% block content %}
+
+<h3>تعديل المهمة</h3>
+<hr>
+
+<form method="POST" class="card p-4 bg-white">
+    {% csrf_token %}
+
+    {{ form.non_field_errors }}
+
+    <div class="mb-3">
+        {{ form.title.label }}
+        {{ form.title }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.description.label }}
+        {{ form.description }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.due_date.label }}
+        {{ form.due_date }}
+    </div>
+
+    <button class="btn btn-primary">تحديث</button>
+</form>
+
+{% endblock %}
+```
+
+---
+
+# 🔵 8) صفحة الحذف — delete_task.html
+
+```html
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="card p-4">
+    <h4>هل أنت متأكد من حذف هذه المهمة؟</h4>
+
+    <p><strong>{{ task.title }}</strong></p>
+
+    <form method="POST">
+        {% csrf_token %}
+        <button class="btn btn-danger">نعم حذف</button>
+        <a href="/" class="btn btn-secondary">إلغاء</a>
+    </form>
+</div>
+
+{% endblock %}
+```
+
+
+أصبح عندك الآن:
+
+✔ CRUD كامل
+✔ Bootstrap جاهز
+✔ Widgets احترافية
+✔ تصميم جميل
+✔ صفحات نظيفة تمامًا
+
+---
+
+
+
+
+تمام يا إيهاب، خلينا نشرح **ببساطة ووضوح كامل** ما معنى هذه المصطلحات في Django Forms:
+
+---
+
+## 1️⃣ `non_field_errors`
+
+* هذا **متغير جاهز في Django Forms**.
+* وظيفته: **عرض الأخطاء العامة للـ Form بأكمله**، وليست مرتبطة بحقل معين.
+* يحدث هذا عندما يكون الخطأ **على مستوى الفورم كامل**، وليس على حقل واحد فقط.
+
+### مثال عملي:
+
+```python
+from django import forms
+
+class MyForm(forms.Form):
+    start_date = forms.DateField()
+    end_date = forms.DateField()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start = cleaned_data.get('start_date')
+        end = cleaned_data.get('end_date')
+
+        if start and end and end < start:
+            raise forms.ValidationError("تاريخ الانتهاء لا يمكن أن يكون قبل تاريخ البداية.")
+```
+
+هنا:
+
+* الخطأ ليس في حقل `start_date` أو `end_date` فقط.
+* الخطأ يحدث بسبب **علاقة بين الحقلين**.
+* إذا استخدمنا `{{ form.non_field_errors }}` في الـ template، سيظهر هذا الخطأ للمستخدم.
+
+---
+
+## 2️⃣ `variable.errors`
+
+* هذا خاص بكل **حقل على حدة**.
+* يعطيك **قائمة بالأخطاء التي تخص هذا الحقل فقط** بعد التحقق من صحة البيانات.
+* يستخدم عادةً مع كل حقل داخل النموذج لعرض رسائل الأخطاء المحددة.
+
+### مثال عملي:
+
+```python
+from django import forms
+
+class MyForm(forms.Form):
+    username = forms.CharField(max_length=10)
+
+    def clean_username(self):
+        data = self.cleaned_data['username']
+        if " " in data:
+            raise forms.ValidationError("اسم المستخدم لا يمكن أن يحتوي على مسافات.")
+        return data
+```
+
+في template:
+
+```html
+<div>
+    {{ form.username.label_tag }}
+    {{ form.username }}
+    {{ form.username.errors }}
+</div>
+```
+
+إذا أدخل المستخدم `"john doe"`:
+
+* سيتم عرض رسالة الخطأ مباشرة تحت الحقل، مثل:
+  `"اسم المستخدم لا يمكن أن يحتوي على مسافات."`
+
+---
+
+### ✅ الملخص:
+
+| المتغير                       | ماذا يعرض؟                                                   | مستوى الخطأ |
+| ----------------------------- | ------------------------------------------------------------ | ----------- |
+| `{{ form.non_field_errors }}` | الأخطاء العامة للـ Form (علاقة بين الحقول أو Validation عام) | Form كامل   |
+| `{{ field.errors }}`          | الأخطاء الخاصة بهذا الحقل فقط                                | حقل محدد    |
+
+---
+
+إذا أحببت، أستطيع أن أرسم لك **رسم توضيحي بالـ HTML و Django template** يوضح الفرق بين **أخطاء الحقول الفردية** و **أخطاء الفورم العامة**، بحيث ترى أين تظهر كل واحدة في الصفحة بالضبط.
+
+هل تريد أن أفعل ذلك؟
+

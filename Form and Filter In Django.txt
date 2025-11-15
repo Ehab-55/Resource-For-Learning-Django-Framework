@@ -1,0 +1,175 @@
+
+
+
+# ✅ أولًا: هل يحتوي Django Filter على Widgets؟
+
+نعم.
+كل **Filter** داخل `FilterSet` يتم تحويله إلى **Form field**، وكل Form field يمكن تخصيص الـ **Widget** الخاص به.
+
+---
+
+# ✅ ثانيًا: كيف نكتب Widget داخل Filter؟
+
+لدينا طريقتان:
+
+## **🔹 الطريقة 1: تحديد Widget داخل الفلتر نفسه**
+
+```python
+import django_filters
+from django import forms
+from .models import Task
+
+class TaskFilter(django_filters.FilterSet):
+    title = django_filters.CharFilter(
+        lookup_expr='icontains',
+        label='عنوان المهمة',
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'ابحث عن مهمة...'
+            }
+        )
+    )
+
+    class Meta:
+        model = Task
+        fields = ['title']
+```
+
+---
+
+## **🔹 الطريقة 2: كتابة Widgets للحقول داخل Meta مثل الـ ModelForm**
+
+```python
+class TaskFilter(django_filters.FilterSet):
+
+    class Meta:
+        model = Task
+        fields = ['title', 'status']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'اكتب العنوان...'
+            }),
+            'status': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+        }
+```
+
+> هذه الطريقة تشبه بالضبط الـ ModelForm.
+
+---
+
+# ✅ ثالثًا: أشهر Widgets الت تستخدم عادة مع الـ Filters
+
+### 1) **TextInput**
+
+```python
+widget=forms.TextInput(attrs={'class': 'form-control'})
+```
+
+### 2) **Select**
+
+```python
+widget=forms.Select(attrs={'class': 'form-select'})
+```
+
+### 3) **DateInput**
+
+```python
+widget=forms.DateInput(attrs={'type': 'date'})
+```
+
+### 4) **NumberInput**
+
+```python
+widget=forms.NumberInput(attrs={'min': 0})
+```
+
+### 5) **CheckboxInput**
+
+```python
+widget=forms.CheckboxInput()
+```
+
+### 6) **SelectMultiple**
+
+```python
+widget=forms.SelectMultiple(attrs={'size': 5})
+```
+
+---
+
+# ✅ رابعًا: مثال كامل (Filter + View + Template)
+
+## 📌 filter.py:
+
+```python
+class TaskFilter(django_filters.FilterSet):
+    title = django_filters.CharFilter(
+        lookup_expr='icontains',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'ابحث بالعنوان...'
+        })
+    )
+
+    status = django_filters.ChoiceFilter(
+        choices=[('pending', 'Pending'), ('done', 'Done')],
+        widget=forms.Select(attrs={
+            'class': 'form-select'
+        })
+    )
+
+    class Meta:
+        model = Task
+        fields = ['title', 'status']
+```
+
+---
+
+## 📌 views.py:
+
+```python
+def task_list(request):
+    queryset = Task.objects.all()
+    myfilter = TaskFilter(request.GET, queryset=queryset)
+    queryset = myfilter.qs   # النتائج بعد التصفية
+
+    return render(request, 'task_list.html', {
+        'filter': myfilter,
+        'tasks': queryset
+    })
+```
+
+---
+
+## 📌 task_list.html:
+
+```html
+<form method="get">
+    {{ filter.form }}
+    <button type="submit">بحث</button>
+</form>
+
+<hr>
+
+<ul>
+    {% for task in tasks %}
+        <li>{{ task.title }} - {{ task.status }}</li>
+    {% endfor %}
+</ul>
+```
+
+---
+
+# 🎉 الخلاصة الذهبية
+
+| العنصر        | Django Form                  | Django Filter       |
+| ------------- | ---------------------------- | ------------------- |
+| Widgets       | نعم                          | نعم                 |
+| طريقة الكتابة | داخل الـ Meta أو تعريف الحقل | نفس أسلوب الـ Form  |
+| الهدف         | إدخال بيانات                 | تصفية بيانات موجودة |
+
+---

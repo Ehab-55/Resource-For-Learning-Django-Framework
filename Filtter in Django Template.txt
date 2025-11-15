@@ -1,0 +1,164 @@
+طبعاً! هذه نظرة شاملة على **الفلاتر المضمنة (built-in filters)** في **Django Templates**، وهي تأتي من التوثيق الرسمي وبعض المصادر المفيدة:
+
+---
+
+## قائمة الفلاتر الجاهزة في Django
+
+حسب موقع "Django Template Tags and Filters"، يوجد приблизительно **57 فلتر مدمج** في Django، موزعة إلى مجموعات حسب النوع: ([djangotemplatetagsandfilters.com][1])
+
+### 1. **فلاتر الكود (Coding Filters)**
+
+* `add`
+* `addslashes`
+* `escape`
+* `escapejs`
+* `force_escape`
+* `json_script`
+* `linebreaks`
+* `linebreaksbr`
+* `pprint`
+* `safe`
+* `striptags`
+
+### 2. **فلاتر بنى البيانات (Data Structure Filters)**
+
+* `dictsort`
+* `dictsortreversed`
+* `first`
+* `join`
+* `last`
+* `make_list`
+* `random`
+* `safeseq`
+* `slice`
+* `unordered_list`
+
+### 3. **فلاتر منطقية (Logic Filters)**
+
+* `default`
+* `default_if_none`
+* `length_is`
+* `yesno`
+
+### 4. **فلاتر الأرقام (Number Filters)**
+
+* `add` *(ظهر مرتين لأنه يرتبط أيضاً بـ Coding)*
+* `divisibleby`
+* `filesizeformat`
+* `floatformat`
+* `get_digit`
+* `length`
+* `wordcount`
+
+### 5. **فلاتر التاريخ والوقت (Date and Time Filters)**
+
+* `date`
+* `time`
+* `timesince`
+* `timeuntil`
+
+### 6. **فلاتر التنسيق (Formatting Filters)**
+
+* `capfirst`
+* `center`
+* `ljust`
+* `lower`
+* `rjust`
+* `title`
+* `upper`
+
+### 7. **فلاتر النص (String Filters)**
+
+* `cut`
+* `linenumbers`
+* `phone2numeric`
+* `pluralize`
+* `stringformat`
+* `truncatechars`
+* `truncatechars_html`
+* `truncatewords`
+* `truncatewords_html`
+* `wordwrap`
+
+### 8. **فلاتر URL**
+
+* `iriencode`
+* `slugify`
+* `urlencode`
+* `urlize`
+* `urlizetrunc`
+
+لمصدر هذه القائمة، راجع: ([djangotemplatetagsandfilters.com][1])
+
+---
+
+## أمثلة توضيحية لبعض الفلاتر المفيدة:
+
+* **`title`** — يحوّل كل كلمة إلى حالة "أولى كبيرة"
+
+  ```django
+  {{ "hello world"|title }} <!-- → "Hello World" -->
+  ```
+
+* **`default`** — يستخدم قيمة افتراضية إذا كان المتغير فارغًا
+
+  ```django
+  {{ value|default:"غير محدد" }}
+  ```
+
+* **`length`** — يعطي عدد عناصر القائمة أو طول النص
+
+  ```django
+  {{ my_list|length }}
+  ```
+
+* **`join`** — يجمع عناصر القائمة مع نص محدد
+
+  ```django
+  {{ my_list|join:", " }}
+  ```
+
+* **`truncatewords` / `truncatechars`** — يختصر النص بعد عدد كلمات أو أحرف معينة
+
+  ```django
+  {{ long_text|truncatewords:5 }}
+  ```
+
+* **`date`** — ينسق التاريخ بالشكل المناسب
+
+  ```django
+  {{ publication_date|date:"D d M Y" }}
+  ```
+
+* **`timesince` / `timeuntil`** — يعرض العمر أو المدة حتى تاريخ معين بشكل بشري
+
+  ```django
+  {{ some_date|timesince }}
+  ```
+
+* **`escape` / `safe`** — للتعامل مع HTML وحماية من XSS
+
+  ```django
+  {{ content|escape }}  <!-- يحول النص للعرض الآمن -->
+  {{ content|safe }}   <!-- يعرض HTML دون هروب -->
+  ```
+
+---
+
+## الخلاصة
+
+* **Django يوفر مجموعة واسعة من الفلاتر الجاهزة** لتسهيل معالجة المتغيرات ضمن القوالب، مثل التعامل مع النصوص والتواريخ والقوائم والمنطق.
+* **يمكن دمج الفلاتر (Chaining)** بسهولة:
+
+  ```django
+  {{ text|escape|linebreaks }}
+  ```
+* **إذا احتجت وظيفة غير موجودة**، يمكنك دائمًا إنشاء فلتر **مخصص** عبر Python داخل مجلد `templatetags` في التطبيق الخاص بك ([Django Project][2], [Real Python][3]).
+
+---
+
+هل تود أن أُدرج لك **أمثلة تطبيقية كاملة داخل القالب** أو أن أعرض **فلتر معين بشكل تفصيلي**؟ فقط أخبرني ولن نتردد في الشرح!
+
+[1]: https://www.djangotemplatetagsandfilters.com/?utm_source=chatgpt.com "Home | Django Template Tags and Filters"
+[2]: https://docs.djangoproject.com/en/3.1/howto//custom-template-tags/?utm_source=chatgpt.com "Custom template tags and filters | Django documentation"
+[3]: https://realpython.com/django-template-custom-tags-filters/?utm_source=chatgpt.com "Django Templates: Implementing Custom Tags and Filters"
